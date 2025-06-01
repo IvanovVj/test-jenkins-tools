@@ -20,7 +20,7 @@ def cmd(command, workDir = "") {
     if (isUnix()) {
         returnCode = sh script: "${command}", returnStatus: true
     } else {
-        returnCode = bat script: "chcp 65001\n ${command}", returnStatus: true
+        returnCode = bat script: "chcp 1251\n ${command}", returnStatus: true
     }
     return returnCode
 }
@@ -32,7 +32,7 @@ def buildCF(ibconnection, v8version, dir = '', uccode = ''){
     }
     int result = 0
     def log_file = "${env.WORKSPACE}\\log.txt"
-    returnCode = cmd("vrunner compile --src \"${dir}/src/cf\" -c --ibconnection ${ibconnection} --v8version \"${v8version}\" --uccode \"${uccode}\" ")
+    returnCode = cmd("chcp 1251 && vrunner compile --src \"${dir}/src/cf\" -c --ibconnection ${ibconnection} --v8version \"${v8version}\" --uccode \"${uccode}\" ")
     if(returnCode > 0){
         error 'Исходники не собрались:\n' + loadErrorMessage()
     }
@@ -42,7 +42,7 @@ def buildCF(ibconnection, v8version, dir = '', uccode = ''){
 }
 def updatedb(ibconnection, v8version, uccode = ''){
             
-    returnCode = cmd("vrunner updatedb --v1 --ibconnection ${ibconnection} --v8version \"${v8version}\" --uccode \"${uccode}\" ")
+    returnCode = cmd("chcp 1251 && vrunner updatedb --v1 --ibconnection ${ibconnection} --v8version \"${v8version}\" --uccode \"${uccode}\" ")
     if (returnCode != 0) {
         error 'Ошибка при удалении базы:'
     }
@@ -53,11 +53,11 @@ def hello_world(){
     echo('Hello, world!')
 }
 def sync_hran(rep_1c, rep_git_local, rep_git_remote, ext = "", aditional_parameters, server1c){
-    start_sync = "gitsync sync --storage-user \"gitbot\" --storage-pwd \"1q2\" ${ext} ${aditional_parameters} \"${rep_1c}\" \"${rep_git_local}\"";
+    start_sync = "chcp 1251 && gitsync sync --storage-user \"gitbot\" --storage-pwd \"1q2\" ${ext} ${aditional_parameters} \"${rep_1c}\" \"${rep_git_local}\"";
     return cmd(start_sync);
 }
 def init_hran(rep_1c, rep_git_local, ext = "", server1c){
-    init_sync = "gitsync init --storage-user \"gitbot\" --storage-pwd \"1q2\" ${ext} \"${rep_1c}\" \"${rep_git_local}\"";
+    init_sync = "chcp 1251 && gitsync init --storage-user \"gitbot\" --storage-pwd \"1q2\" ${ext} \"${rep_1c}\" \"${rep_git_local}\"";
     return cmd(init_sync);
 }
 def telegram_send_message(TOKEN,CHAT_ID, messageText,success){
