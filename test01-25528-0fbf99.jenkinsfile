@@ -1,0 +1,71 @@
+@Library('1c-utils')
+
+import io.libs.v8_utils
+
+def utils = new v8_utils()
+
+currentBuild.displayName = 'sync repo'
+
+rep_1c = env.rep_1c
+rep_git_local = env.rep_git_local
+rep_git_remote = env.rep_git_remote
+aditional_parameters = env.aditional_parameters
+server1c = env.server1c
+name_cfe = env.name_cfe
+token = env.token
+
+/* groovylint-disable-next-line NglParseError */
+pipeline {
+    agent { label "localhost"}
+
+    stages{
+        stage('Init repo'){
+            steps{
+                script{
+                returnCode = utils.cmd("cd /D \"${rep_git_local}\" & git checkout -B \"storage_1c\" \"origin/storage_1c\"");
+                if (returnCode != 0) {
+                        error 'Ошибка'
+                    }
+                withCredentials([usernamePassword(credentialsId: 'token',
+                usernameVariable: 'username',
+                passwordVariable: 'password')]){
+                returnCode = utils.cmd("cd /D \"${rep_git_local}\" & git pull https://$username:$password@$rep_git_remote storage_1c");
+                }
+                if (returnCode != 0) {
+                        error 'Ошибка'
+                        }
+                returnCode = utils.init_hran(rep_1c, rep_git_local+"\\src\\cf",,"");
+                if (returnCode != 0) {
+                        error 'Ошибка'
+                    }
+                }
+            }
+        }
+
+        stage('sync repo'){
+            steps{
+                script{
+                 returnCode = utils.sync_hran(rep_1c, rep_git_local+"\\src\\cf", "https://"+rep_git_remote,,aditional_parameters,server1c);
+                 if (returnCode != 0) {
+                        error 'Ошибка'
+                    }
+                }
+            }
+        }
+
+        stage('push repo'){
+            steps{
+                script{
+                    withCredentials([usernamePassword(credentialsId: "token",
+                 passwordVariable: 'password',
+                 usernameVariable: 'username' )]){
+                 returnCode = utils.cmd("cd /D \"${rep_git_local}\"  & git push  https://$username:$password@$rep_git_remote")
+                 }
+                 if (returnCode != 0) {
+                        error 'Ошибка'
+                    }
+                }
+            }
+        }
+    }
+   }
